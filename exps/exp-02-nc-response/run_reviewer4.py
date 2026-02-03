@@ -1,9 +1,9 @@
-"""Reviewer #4 analysis: fitness advantage of aztreonam peak across concentrations.
+"""Reviewer #4 analysis: fitness advantage of aztreonam peak group across concentrations.
 
-Produces a box plot showing how the fitness advantage of the global peak
-genotype over its 1-mutation and 2-mutation neighbors changes with drug
-concentration. This addresses the reviewer's request for a quantitative
-diagnostic of the peak "absorption" at intermediate concentrations.
+Takes all genotypes in the global peak supernode (from the azt_108 graph) and
+computes their fitness advantage over external 1-mutation and 2-mutation
+neighbors at each drug concentration. Produces a box plot showing how the
+peak's fitness advantage changes with concentration.
 """
 
 import argparse
@@ -14,29 +14,31 @@ import matplotlib.pyplot as plt
 import numpy as np
 import polars as pl
 
-# Add project root to path so we can import the helper module
 sys.path.insert(0, os.path.dirname(__file__))
-from graph_analysis import compute_fitness_advantage_across_concentrations
+from graph_analysis import (
+    compute_group_fitness_advantage,
+    get_peak_genotypes,
+    load_graph,
+)
 
 
 def make_boxplot(
     result_df: pl.DataFrame,
-    target: str,
     output_dir: str,
+    group_size: int,
 ) -> None:
     """Create box plot of fitness advantage vs concentration.
 
     Args:
-        result_df: Output of compute_fitness_advantage_across_concentrations.
-        target: Target genotype string (for title).
+        result_df: Output of compute_group_fitness_advantage.
         output_dir: Directory to save figures.
+        group_size: Number of genotypes in the peak group.
     """
     concentrations = sorted(result_df["concentration"].unique().to_list())
     distances = sorted(result_df["distance"].unique().to_list())
 
     fig, ax = plt.subplots(figsize=(10, 5))
 
-    # Positions for grouped box plots
     n_conc = len(concentrations)
     n_dist = len(distances)
     width = 0.35
@@ -60,7 +62,6 @@ def make_boxplot(
         if not box_data:
             continue
 
-        label = f"{dist}-mutation" if dist not in labels_added else None
         bp = ax.boxplot(
             box_data,
             positions=positions,
@@ -75,7 +76,6 @@ def make_boxplot(
         for median_line in bp["medians"]:
             median_line.set_color("black")
 
-        # Legend entry
         if dist not in labels_added:
             bp["boxes"][0].set_label(f"{dist}-mutation neighbors")
             labels_added.add(dist)
@@ -84,28 +84,24 @@ def make_boxplot(
     ax.set_xticks(x_base)
     ax.set_xticklabels([str(c) for c in concentrations])
     ax.set_xlabel("Aztreonam concentration (µg/mL)")
-    ax.set_ylabel("Fitness advantage (target − neighbor)")
-    ax.set_title(f"Fitness advantage of peak {target}")
+    ax.set_ylabel("Fitness advantage (group member − external neighbor)")
+    ax.set_title(
+        f"Fitness advantage of azt_108 global peak group ({group_size} genotypes) "
+        f"over external neighbors"
+    )
     ax.legend(loc="upper left")
 
     plt.tight_layout()
-    plt.savefig(
-        os.path.join(output_dir, "fitness_advantage_boxplot.pdf"),
-        bbox_inches="tight",
-        dpi=300,
-    )
-    plt.savefig(
-        os.path.join(output_dir, "fitness_advantage_boxplot.png"),
-        bbox_inches="tight",
-        dpi=300,
-    )
+    for ext in ("pdf", "png"):
+        path = os.path.join(output_dir, f"fitness_advantage_boxplot.{ext}")
+        plt.savefig(path, bbox_inches="tight", dpi=300)
     plt.close()
     print(f"Saved box plot to {output_dir}")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Reviewer #4: aztreonam peak fitness advantage analysis"
+        description="Reviewer #4: aztreonam peak group fitness advantage analysis"
     )
     parser.add_argument(
         "--pairs-path",
@@ -114,16 +110,16 @@ def main():
         help="Path to aztreonam pairwise table CSV",
     )
     parser.add_argument(
+        "--graph-path",
+        type=str,
+        default="exps/exp-01-reproduce-results/outputs/run1-reproduce-results/azt_108_0.graphml",
+        help="Path to GraphML file to extract the peak group from",
+    )
+    parser.add_argument(
         "--output-dir",
         type=str,
         default="exps/exp-02-nc-response/outputs",
         help="Directory to save output files",
-    )
-    parser.add_argument(
-        "--target-genotype",
-        type=str,
-        default="P.LKN...K....",
-        help="13-char mutant profile of the peak to track",
     )
     parser.add_argument(
         "--max-distance",
@@ -131,20 +127,33 @@ def main():
         default=2,
         help="Maximum mutation distance to consider (1 or 2)",
     )
+    parser.add_argument(
+        "--peak-rank",
+        type=int,
+        default=0,
+        help="Which peak to analyze (0 = highest fitness, 1 = second, etc.)",
+    )
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
 
+    # Load peak group from graph
+    print(f"Loading graph from {args.graph_path}")
+    graph = load_graph(args.graph_path)
+    group_genotypes = get_peak_genotypes(graph, rank=args.peak_rank)
+    print(f"Peak group has {len(group_genotypes)} genotypes")
+
+    # Load pair table
     print(f"Loading pair table from {args.pairs_path}")
     pairs_df = pl.read_csv(args.pairs_path)
     concentrations = sorted(pairs_df["concentration"].unique().to_list())
     print(f"Concentrations: {concentrations}")
-    print(f"Target genotype: {args.target_genotype}")
 
+    # Compute fitness advantages
     print("Computing fitness advantages...")
-    result_df = compute_fitness_advantage_across_concentrations(
+    result_df = compute_group_fitness_advantage(
         pairs_df=pairs_df,
-        target=args.target_genotype,
+        group_genotypes=group_genotypes,
         concentrations=concentrations,
         max_distance=args.max_distance,
     )
@@ -163,13 +172,13 @@ def main():
             if diffs:
                 print(
                     f"  conc={conc:>6.1f}  dist={dist}  "
-                    f"n={len(diffs):>3d}  "
+                    f"n={len(diffs):>5d}  "
                     f"median_adv={np.median(diffs):>+.3f}  "
                     f"mean_adv={np.mean(diffs):>+.3f}"
                 )
 
     # Make box plot
-    make_boxplot(result_df, args.target_genotype, args.output_dir)
+    make_boxplot(result_df, args.output_dir, len(group_genotypes))
 
 
 if __name__ == "__main__":
