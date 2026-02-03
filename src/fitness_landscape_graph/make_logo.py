@@ -41,7 +41,7 @@ all_mutations = {
 
 def convert_profile_to_intended(mutant_profile, all_mutations, intended):
     # Create mapping from position index to wildtype amino acid
-    wt_map = {pos: intended[pos][0] for pos in intended.keys()}
+    wt_map = {pos: intended[pos][0] for pos in intended}
 
     # Convert string to list for easier manipulation
     profile_list = list(mutant_profile)
@@ -60,7 +60,7 @@ def convert_profile_to_intended(mutant_profile, all_mutations, intended):
 
 def convert_profile_to_dots(mutant_profile, intended):
     # Create mapping from position index to wildtype amino acid
-    wt_map = {pos: intended[pos][0] for pos in intended.keys()}
+    wt_map = {pos: intended[pos][0] for pos in intended}
 
     # Convert string to list for easier manipulation
     profile_list = list(mutant_profile)
@@ -117,6 +117,7 @@ def convert_dots_to_intended_sequences(mutant_seqs, all_mutations, intended):
 
 def counts_to_string(counts_mat, threshold_ratio=0.8, wildtype=None, use_dots=False):
     """Convert count matrix to string, showing multiple characters when frequencies are similar.
+
     Matches the format: L[KQ]MKNMAGKR[TM]RN -> .[.K].KN...K.[.M]..
 
     Parameters:
@@ -232,7 +233,7 @@ def plot_logo(
     """Plot sequence logo from mutant dictionary.
 
     Args:
-        mutant_dict: Dictionary of mutant sequences and their counts/weights
+        mutant_seqs: Mutant sequences to plot
         all_mutations: Dict of allowed mutations at each position
         intended: Dict mapping positions to allowed mutations
         threshold_ratio: float between 0 and 1, characters with frequency >= max_freq * threshold_ratio will be included
@@ -258,11 +259,11 @@ def plot_logo(
     style_logo_colors(logo, len(wildtype), wildtype, intended)
 
     # Define Ambler positions
-    sign_pos_Ambler = [21, 39, 69, 104, 164, 182, 237, 238, 240, 244, 265, 275, 276]
+    sign_pos_ambler = [21, 39, 69, 104, 164, 182, 237, 238, 240, 244, 265, 275, 276]
 
     # Set x-axis ticks and labels to Ambler positions
-    ax.set_xticks(range(len(sign_pos_Ambler)))
-    ax.set_xticklabels(sign_pos_Ambler)
+    ax.set_xticks(range(len(sign_pos_ambler)))
+    ax.set_xticklabels(sign_pos_ambler)
 
     # Customize appearance
     ax.set_xlabel("Position")

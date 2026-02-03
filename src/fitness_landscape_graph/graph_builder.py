@@ -1,4 +1,5 @@
 # This script contains the code to build the fitness landscape graph.
+import contextlib
 import logging
 import math
 
@@ -14,10 +15,8 @@ import polars as pl
 
 # set multiprocessing start method
 # Try to set 'spawn' start method for safety in some platforms
-try:
+with contextlib.suppress(RuntimeError):
     mp.set_start_method("spawn")
-except RuntimeError:
-    pass  # Context is already set
 
 from fitness_landscape_graph.make_logo import (
     all_mutations,
@@ -53,6 +52,7 @@ class GraphBuilder:
         remove_dead_mutant: bool = True,
     ) -> nx.MultiDiGraph:
         """Initial raw graph: all mutants are nodes, all edges are one mutation away between mutants.
+
         If mutants have the same fitness, we add two edges in both directions.
         If mutants have different fitness, we add one edge in the direction of higher fitness.
 
@@ -116,6 +116,7 @@ class GraphBuilder:
         forbidden_pairs: set[frozenset] | None = None,
     ) -> nx.MultiDiGraph:
         """If edge weight <= neutral_threshold, merge the two nodes.
+
         Forbidden pairs are not merged.
         Aggregate edge weights as the net flow.
         """
@@ -142,7 +143,8 @@ class GraphBuilder:
         # This checks if, after merging sets containing u and v, any forbidden pair
         # would end up in the same set.
         def would_merge_forbidden(u: str, v: str) -> bool:
-            """Check if merging u and v would:
+            """Check if merging u and v would cause forbidden pair violations.
+
             1. Unify any forbidden pair directly
             2. Cause multiple forbidden pairs to collapse into the same edge
             3. Indirectly unify nodes that are part of different forbidden pairs
@@ -165,19 +167,19 @@ class GraphBuilder:
                     )
                     continue
 
-                A, B = list(fset)
-                rA, rB = find_set(A), find_set(B)
+                node_a, node_b = list(fset)
+                root_a, root_b = find_set(node_a), find_set(node_b)
 
                 # Check if either representative is involved in this forbidden pair
-                if rA == ru:
-                    ru_forbidden_partners.add(rB)
-                elif rB == ru:
-                    ru_forbidden_partners.add(rA)
+                if root_a == ru:
+                    ru_forbidden_partners.add(root_b)
+                elif root_b == ru:
+                    ru_forbidden_partners.add(root_a)
 
-                if rA == rv:
-                    rv_forbidden_partners.add(rB)
-                elif rB == rv:
-                    rv_forbidden_partners.add(rA)
+                if root_a == rv:
+                    rv_forbidden_partners.add(root_b)
+                elif root_b == rv:
+                    rv_forbidden_partners.add(root_a)
 
             # If there's any overlap in forbidden partners, merging would collapse
             # multiple forbidden pairs into one edge
@@ -192,9 +194,9 @@ class GraphBuilder:
                         f"skipping forbidden pair {fset} because it's not a pair"
                     )
                     continue
-                A, B = list(fset)
-                rA, rB = find_set(A), find_set(B)
-                if rA in (ru, rv) and rB in (ru, rv) and rA != rB:
+                node_a, node_b = list(fset)
+                root_a, root_b = find_set(node_a), find_set(node_b)
+                if root_a in (ru, rv) and root_b in (ru, rv) and root_a != root_b:
                     return True
 
             return False
@@ -342,8 +344,9 @@ class GraphBuilder:
 
     @staticmethod
     def detect_peak_nodes(graph_in: nx.MultiDiGraph) -> list[str]:
-        """A 'peak' node is one with out_degree=0 (no outgoing edges),
-        and in_degree>0.
+        """A 'peak' node is one with out_degree=0 (no outgoing edges).
+
+        Also requires in_degree>0.
         """
         return [
             n
@@ -405,6 +408,7 @@ class GraphBuilder:
         self, input_graph: nx.MultiDiGraph, use_parallel: bool = True
     ) -> nx.DiGraph:
         """Peak nodes are nodes with out_degree=0 and in_degree>0.
+
         Connection nodes are nodes that appear in multiple peak groups.
         This function merges ancestors of each peak node, and keeps connection nodes as is.
 
@@ -567,6 +571,7 @@ class GraphBuilder:
 
     def mark_peaks_and_edges(self, input_graph: nx.MultiDiGraph) -> nx.DiGraph:
         """Mark peak nodes and deterministic edges without merging ancestors.
+
         Similar to merge_peaks, but without merging.
         """
         marked_graph = nx.DiGraph()
@@ -611,8 +616,9 @@ class GraphBuilder:
     # utility functions for graph post-processing
     ############################################################
     def rename_nodes_closest_to_average(self, final_graph: nx.DiGraph) -> None:
-        """Rename each node based on the mutant whose fitness is closest
-        to the group average, and set that as the node's "fitness".
+        """Rename each node based on the mutant whose fitness is closest to the group average.
+
+        Sets that as the node's "fitness".
         """
         rename_map = {}
         for node in final_graph.nodes():
@@ -669,6 +675,7 @@ class GraphBuilder:
         large_edge_threshold: float | None = None,
     ) -> set[frozenset]:
         """Identify forbidden pairs based on edge weights.
+
         First find all pairs with weight >= large_edge_threshold.
         If num_forbidden_pairs is specified, select the top k pairs from these.
         """

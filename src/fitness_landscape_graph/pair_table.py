@@ -73,7 +73,7 @@ def get_mutant_pairs(long_df: pl.DataFrame) -> pl.DataFrame:
     mutant_profiles = long_df["mutant_profile"].unique().to_numpy()
 
     def string_difference(s1, s2):
-        return sum(c1 != c2 for c1, c2 in zip(s1, s2))
+        return sum(c1 != c2 for c1, c2 in zip(s1, s2, strict=True))
 
     char_diff_dict = defaultdict(set)
     for i, mutant in enumerate(mutant_profiles):

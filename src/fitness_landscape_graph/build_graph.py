@@ -99,11 +99,9 @@ def main():
     )
 
     # Access the processed dataframes
-    amp_df = processed_data["amp"]["original"]
     amp_long_df = processed_data["amp"]["long"]
     amp_pairs_df = processed_data["amp"]["pairs"]
 
-    azt_df = processed_data["azt"]["original"]
     azt_long_df = processed_data["azt"]["long"]
     azt_pairs_df = processed_data["azt"]["pairs"]
 

@@ -11,6 +11,7 @@ from fitness_landscape_graph.preprocess import preprocess_data
 
 def calculate_normalized_fitness(long_df):
     """Calculate normalized fitness from a long-format dataframe containing replicate measurements.
+
     Normalizes fitness relative to wildtype (all dots) and dead mutant (all X's).
 
     Parameters:
@@ -128,7 +129,7 @@ def get_pairs(global_fitness_df):
     """
 
     def string_difference(s1, s2):
-        return sum(c1 != c2 for c1, c2 in zip(s1, s2))
+        return sum(c1 != c2 for c1, c2 in zip(s1, s2, strict=True))
 
     mutant_profiles = global_fitness_df["mutant_profile"].unique().to_list()
 
