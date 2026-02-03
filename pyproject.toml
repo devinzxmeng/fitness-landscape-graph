@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fitness-landscape-graph"                # distribution name (pip)
+version = "1.0.0"           # bump for releases
+description = "Fitness landscape Graph"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# --- Ruff (Linting & Formatting) ---
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+# Completely exclude notebooks as you requested
+exclude = ["*.ipynb", "external/**"]
+
+[tool.ruff.lint]
+# === WHAT WE ARE CHECKING (select) ===
+select = [
+    "F",    # Pyflakes: Finds logic errors (undefined variables, unused imports)
+    "E",    # pycodestyle errors: Standard PEP 8 style rules
+    "W",    # pycodestyle warnings: Non-critical style issues
+    "I",    # isort: Automatically sorts and groups your import statements
+    "UP",   # pyupgrade: Modernizes code to Python 3.10+ syntax (e.g., int | None)
+    "B",    # flake8-bugbear: Catches common design flaws (e.g., mutable default args)
+    "SIM",  # flake8-simplify: Suggests cleaner, more concise logic
+    "D",    # pydocstyle: Ensures docstrings follow professional standards
+    "N",    # pep8-naming: Enforces snake_case for functions and PascalCase for classes
+]
+
+# === WHAT WE ARE IGNORING (ignore) ===
+ignore = [
+    # --- Formatter Harmony ---
+    # These are handled by the Ruff Formatter; the Linter should stay quiet about them.
+    "E501", # Line too long (The formatter will wrap what it can)
+    "W191", # Tab indentation (Formatter uses spaces)
+    "E111", # Indentation: Under-indented
+    "E114", # Indentation: Under-indented in comments
+    "E117", # Indentation: Over-indented
+    "D206", # Docstring indentation (handled by formatter)
+    "D300", # Triple single quotes (handled by formatter)
+
+    # --- Docstring 'Concise Developer' Settings ---
+    # We ignore 'Missing Docstring' errors so you only write them when you want to.
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D107", # Missing docstring in __init__ (usually explained in the class doc)
+
+    # --- Formatting Conflicts ---
+    "D203", # Conflict: one-blank-line-before-class (Incompatible with D211)
+    "D213", # Conflict: multi-line-summary-second-line (Incompatible with D212)
+]
+
+[tool.ruff.lint.pydocstyle]
+# Enforces the Google style for any docstrings you choose to write
+convention = "google" 
+
+[tool.ruff.lint.isort]
+# Tells Ruff that 'fitness-landscape-graph' is your local code, not a third-party library
+known-first-party = ["fitness-landscape-graph"]
+combine-as-imports = true
+
+[tool.ruff.format]
+quote-style = "double"           # "double quotes" are the standard
+indent-style = "space"           # 4 spaces is the standard
+skip-magic-trailing-comma = false # Adding a comma at the end of a list expands it vertically
+docstring-code-format = true     # Formats code snippets inside your docstrings
