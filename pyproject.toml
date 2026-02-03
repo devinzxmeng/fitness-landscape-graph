@@ -3,14 +3,24 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fitness-landscape-graph"                # distribution name (pip)
-version = "1.0.0"           # bump for releases
+name = "fitness_landscape_graph"                # distribution name (pip)
+version = "1.1.0"           # bump for releases
 description = "Fitness landscape Graph"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
+ dependencies = [                                                                                                                                                              
+     "polars>=1.0",                                                                                                                                                            
+     "networkx>=3.0",                                                                                                                                                          
+     "numpy>=1.26",                                                                                                                                                            
+     "logomaker>=0.8",                                                                                                                                                         
+     "matplotlib>=3.7",                                                                                                                                                        
+     "scipy>=1.11",                                                                                                                                                            
+     "tqdm>=4.60",                                                                                                                                                             
+ ]   
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["fitness_landscape_graph*"]
 
 # --- Ruff (Linting & Formatting) ---
 [tool.ruff]
@@ -64,8 +74,8 @@ ignore = [
 convention = "google" 
 
 [tool.ruff.lint.isort]
-# Tells Ruff that 'fitness-landscape-graph' is your local code, not a third-party library
-known-first-party = ["fitness-landscape-graph"]
+# Tells Ruff that 'fitness_landscape_graph' is your local code, not a third-party library
+known-first-party = ["fitness_landscape_graph"]
 combine-as-imports = true
 
 [tool.ruff.format]
