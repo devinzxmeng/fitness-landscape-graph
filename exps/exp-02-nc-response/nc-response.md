@@ -24,4 +24,8 @@ Interpretation: The reviewer wants two things:
 2. A robustness/sensitivity analysis showing the peak disappearance holds under different neutrality cutoff values.
 
 Response:
-To make the fitness landscape graph more robust to the choice of neutral threshold, we introduce the concept of forbidden pairs. This concept come from the observation of gradually increasing the neutral threshold: initially there are some big supernodes (which represent the macroscopic structure of the landscape) but there are too many nodes to be readable, then as we increase the neutral threshold, these macroscopic landscape structure start to be merged into each other and the number of nodes decrease. We noticed that it's really hard to pick a neutral threshold parameter such that it keeps the macroscopic structure but still have readable number of nodes, and we want the algorithm to be simple, interpretable, and fast. Therefore, we design this feature of forbidden pair, which use a "tiny" neutral merge to find the macroscopic landscape and then froze it from being merged. Please check the methods section or our code for more details.
+## Plan
+
+1. in figma, indicate wildtype. also consider update the skematic
+2. box plot showing fitness advantage analysis
+3. a few more gephi plots to show the robustness of neutral threshold.

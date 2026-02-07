@@ -591,3 +591,119 @@ class GraphAnalyzer:
             if genotype in data.get("group_mutants", {}):
                 return node
         return None
+
+    def get_node_genotypes(self, node_id: str) -> set[str]:
+        """Get all genotype strings from a supernode.
+
+        Args:
+            node_id: Node identifier in the graph.
+
+        Returns:
+            Set of genotype strings in the node's group_mutants.
+
+        Raises:
+            KeyError: If node_id not found in graph.
+        """
+        if node_id not in self.graph:
+            raise KeyError(f"Node '{node_id}' not found in graph.")
+        return set(self.graph.nodes[node_id].get("group_mutants", {}).keys())
+
+    def get_nodes_genotypes(self, node_ids: list[str]) -> set[str]:
+        """Get all genotype strings from multiple supernodes.
+
+        Args:
+            node_ids: List of node identifiers in the graph.
+
+        Returns:
+            Set of genotype strings from all specified nodes (union).
+        """
+        all_genotypes = set()
+        for node_id in node_ids:
+            all_genotypes.update(self.get_node_genotypes(node_id))
+        return all_genotypes
+
+    def get_peak_genotypes(self, rank: int = 0) -> set[str]:
+        """Get all genotype strings from a peak supernode.
+
+        Convenience method for common case. For custom selection,
+        use get_node_genotypes() or get_nodes_genotypes() instead.
+
+        Args:
+            rank: 0 for highest-fitness peak, 1 for second, etc.
+
+        Returns:
+            Set of genotype strings in the peak's group_mutants.
+        """
+        peaks = [
+            (n, d) for n, d in self.graph.nodes(data=True) if d.get("is_peak") == 1
+        ]
+        peaks.sort(key=lambda x: x[1]["fitness"], reverse=True)
+        if rank >= len(peaks):
+            return set()
+        node_id, _ = peaks[rank]
+        return self.get_node_genotypes(node_id)
+
+    def has_global_peak(
+        self, min_group_size: int = 32
+    ) -> tuple[bool, str | None, dict]:
+        """Detect if graph has a global peak.
+
+        A global peak must:
+        1. Be a peak node (is_peak=1)
+        2. Have group_size > min_group_size
+        3. Have the highest fitness in the graph
+
+        Args:
+            min_group_size: Minimum group size to qualify as global peak.
+
+        Returns:
+            Tuple of (has_global_peak, peak_node_id, peak_info) where:
+            - has_global_peak: True if a global peak exists
+            - peak_node_id: Node ID of the global peak (None if doesn't exist)
+            - peak_info: Dict with 'fitness' and 'group_size' (empty if doesn't exist)
+        """
+        # Find the highest fitness node in the entire graph
+        max_fitness = -float("inf")
+        max_fitness_node = None
+        for n, d in self.graph.nodes(data=True):
+            if d["fitness"] > max_fitness:
+                max_fitness = d["fitness"]
+                max_fitness_node = n
+
+        if max_fitness_node is None:
+            return False, None, {}
+
+        # Check if the highest fitness node is a large peak
+        node_data = self.graph.nodes[max_fitness_node]
+        is_peak = node_data.get("is_peak", 0) == 1
+        group_size = node_data.get("group_size", 0)
+        is_large = group_size > min_group_size
+
+        if is_peak and is_large:
+            peak_info = {
+                "fitness": node_data["fitness"],
+                "group_size": group_size,
+            }
+            return True, max_fitness_node, peak_info
+
+        return False, None, {}
+
+    @staticmethod
+    def hamming_distance(a: str, b: str) -> int:
+        """Compute Hamming distance between equal-length strings.
+
+        Public static method for external use (replaces _hamming_distance).
+
+        Args:
+            a: First string.
+            b: Second string.
+
+        Returns:
+            Number of positions where characters differ.
+
+        Raises:
+            ValueError: If strings have unequal lengths.
+        """
+        if len(a) != len(b):
+            raise ValueError(f"Unequal lengths: {len(a)} != {len(b)}")
+        return sum(1 for ca, cb in zip(a, b, strict=True) if ca != cb)
