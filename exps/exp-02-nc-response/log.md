@@ -10,18 +10,11 @@ Addresses Reviewer #4's comments from the Nature Communications response. See `n
 
 Shows how the peak's fitness advantage over its 1-mutation and 2-mutation neighbors changes with drug concentration. Distinguishes real biological flattening from threshold artifacts.
 
-**Run:**
-```bash
-bash analyze_peak_fitness_advantage.sh
-```
+**Run:** Open and run `fitness_advantage_analysis.ipynb`
 
 **Output:** `outputs/fitness-advantage-azt-12/`
 - `fitness_advantage_boxplot.pdf` — box plot of fitness advantage vs concentration
 - `fitness_advantage_data.csv` — raw data
-
-**Key scripts:**
-- `analyze_peak_fitness_advantage.py` — CLI wrapper that loads graph, extracts peak genotypes, computes fitness advantages, and generates box plot
-- `analyze_peak_fitness_advantage.sh` — shell wrapper with paths
 
 ### 2. Robustness/sensitivity of global peak existence (Reviewer #4, point iii)
 
