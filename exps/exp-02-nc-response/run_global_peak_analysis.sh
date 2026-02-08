@@ -1,13 +1,9 @@
 #!/bin/bash
 
-# Global peak robustness analysis workflow
-# Deliverable: Robustness/sensitivity analysis showing global peak existence
-# across different neutrality cutoff values and drug concentrations.
-#
-# Steps:
-# 1. Build 124 graphs (31 thresholds × 4 concentrations) in parallel
-# 2. Analyze graphs for global peak existence
-# 3. Create heatmap and summary visualizations
+# Global peak robustness analysis — graph building step
+# Builds 124 graphs (31 thresholds × 4 concentrations) in parallel.
+# After building, open and run neutral_threshold_robustness.ipynb for
+# analysis and visualization.
 
 set -e
 
@@ -31,22 +27,10 @@ python -m fitness_landscape_graph.build_graphs_parallel \
     --concentrations 12.0 36.0 108.0 324.0
 
 echo ""
-echo "Step 2: Analyzing graphs for global peak existence..."
-echo "------------------------------------------------------------------------"
-python "$SCRIPT_DIR/analyze_global_peaks.py"
-
-echo ""
-echo "Step 3: Creating visualizations..."
-echo "------------------------------------------------------------------------"
-python "$SCRIPT_DIR/plot_global_peak_heatmap.py"
-
-echo ""
 echo "========================================================================"
-echo "WORKFLOW COMPLETE"
+echo "GRAPH BUILDING COMPLETE"
 echo "========================================================================"
 echo ""
-echo "Results in: $OUTPUT_DIR/"
-echo "  - global_peak_analysis.csv"
-echo "  - global_peak_heatmap.png"
-echo "  - global_peak_by_concentration.png"
-echo "  - global_peak_by_threshold.png"
+echo "Graphs saved to: $OUTPUT_DIR/"
+echo ""
+echo "Next: open and run neutral_threshold_robustness.ipynb for analysis + visualization."
