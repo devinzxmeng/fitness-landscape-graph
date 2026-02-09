@@ -21,20 +21,17 @@ Shows how the peak's fitness advantage over its 1-mutation and 2-mutation neighb
 Shows that the global peak disappearance at intermediate concentrations is robust across a range of neutrality cutoff values (0.15–0.45), not an artifact of a specific threshold choice.
 
 **Run:**
-```bash
-bash run_global_peak_analysis.sh
-```
+1. Build graphs (compute-heavy, ~15-20 min):
+   ```bash
+   bash run_global_peak_analysis.sh
+   ```
+2. Analyze + visualize: open and run `neutral_threshold_robustness.ipynb`
 
 **Output:** `outputs/global-peak-robustness/`
 - `global_peak_heatmap.png` — threshold × concentration heatmap
 - `global_peak_by_concentration.png` — summary by concentration
 - `global_peak_by_threshold.png` — summary by threshold
 - `global_peak_analysis.csv` — raw analysis data
-
-**Key scripts:**
-- `run_global_peak_analysis.sh` — master workflow (build → analyze → visualize)
-- `analyze_global_peaks.py` — batch analysis of all graphs for global peak existence
-- `plot_global_peak_heatmap.py` — visualization of results
 
 ## Code organization
 
