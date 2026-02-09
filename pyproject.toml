@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fitness_landscape_graph"                # distribution name (pip)
-version = "1.1.0"           # bump for releases
+version = "1.2.0"           # bump for releases
 description = "Fitness landscape Graph"
 readme = "README.md"
 requires-python = ">=3.11"
